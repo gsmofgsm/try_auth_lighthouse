@@ -33,13 +33,55 @@ class User extends Model
         'email_verified_at' => 'datetime',
     ];
 
-    public static $pharmacy_ids = [1];
+    public static $my_pharmacy_ids = [1];
 
-    public static $roles = [
+    public static $my_abilities = ['address'];
+
+    public static $my_roles = [
         [
             'permissions' => [
                 ['name' => 'address']
             ]
         ]
     ];
+
+    public $roles;
+    public $pharmacy_ids;
+
+    public static function setMyAbilities($abilities){
+        static::$my_abilities = $abilities;
+    }
+
+    public static function setPharmacyIds($ids) {
+        static::$my_pharmacy_ids = $ids;
+    }
+
+    public static function getMe(){
+        $me = new static();
+        $permissions = [];
+        foreach (static::$my_abilities as $ability) {
+            $permissions[] = ['name' => $ability];
+        }
+        $me->roles = [
+            ['permissions' => $permissions]
+        ];
+        $me->pharmacy_ids = static::$my_pharmacy_ids;
+        return $me;
+    }
+
+    public function can($query, $pharmacy_id=null)
+    {
+        if(! is_null($pharmacy_id)) {
+            return in_array($pharmacy_id, $this->pharmacy_ids);
+        }
+
+        foreach ($this->roles as $role) {
+            foreach ($role['permissions'] as $permission) {
+                if ($permission['name'] === $query) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
 }
