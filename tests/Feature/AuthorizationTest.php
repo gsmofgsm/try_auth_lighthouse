@@ -8,7 +8,7 @@ use App\User;
 use Nuwave\Lighthouse\Testing\MakesGraphQLRequests;
 use Tests\TestCase;
 
-class AddressAuthorizationTest extends TestCase
+class AuthorizationTest extends TestCase
 {
     use MakesGraphQLRequests;
 
@@ -92,6 +92,26 @@ class AddressAuthorizationTest extends TestCase
         }")->assertSee('You are not authorized');
         User::setPharmacyIds([$pharmacy->id]);
         User::setMyAbilities(['pharmacy']);
+        $this->graphQL("{
+        pharmacy(id: {$pharmacy->id}) {
+            name
+        }
+        }")->assertJsonFragment([
+            'name' => $pharmacy->name
+        ]);
+    }
+
+    /** @test */
+    public function admin_has_all_permissions()
+    {
+        $pharmacy = factory(Pharmacy::class)->create();
+        $this->graphQL("{
+        pharmacy(id: {$pharmacy->id}) {
+            name
+        }
+        }")->assertSee('You are not authorized');
+
+        User::setPromotionToAdmin();
         $pharmacy = factory(Pharmacy::class)->create();
         $this->graphQL("{
         pharmacy(id: {$pharmacy->id}) {

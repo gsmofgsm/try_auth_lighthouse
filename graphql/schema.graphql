@@ -6,7 +6,7 @@ scalar Date @scalar(class: "Nuwave\\Lighthouse\\Schema\\Types\\Scalars\\Date")
 
 type Query {
     address(id: ID! @eq): Address @can(ability: "address" find: "id") @find
-    pharmacy(id: ID! @eq): Pharmacy @can(ability: "pharmacy") @find
+    pharmacy(id: ID! @eq): Pharmacy @can(ability: "pharmacy" find: "id") @find
     pharmacies: [Pharmacy] @all
 }
 

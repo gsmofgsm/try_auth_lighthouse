@@ -33,20 +33,25 @@ class User extends Model
         'email_verified_at' => 'datetime',
     ];
 
+    public static $is_admin = false;
+
     public static $my_pharmacy_ids = [1];
 
     public static $my_abilities = ['address'];
 
     public static $my_roles = [
         [
+            'name' => 'pharmacy',
+
             'permissions' => [
                 ['name' => 'address']
             ]
-        ]
+        ],
+
     ];
 
-    public $roles;
-    public $pharmacy_ids;
+    public $roles = [];
+    public $pharmacy_ids = [];
 
     public static function setMyAbilities($abilities){
         static::$my_abilities = $abilities;
@@ -56,29 +61,41 @@ class User extends Model
         static::$my_pharmacy_ids = $ids;
     }
 
+    public static function setPromotionToAdmin(){
+        static::$is_admin = true;
+    }
+
     public static function getMe(){
         $me = new static();
         $permissions = [];
         foreach (static::$my_abilities as $ability) {
             $permissions[] = ['name' => $ability];
         }
-        $me->roles = [
-            ['permissions' => $permissions]
+        $me->roles[] = [
+            'name' => 'pharmacy',
+            'permissions' => $permissions
         ];
         $me->pharmacy_ids = static::$my_pharmacy_ids;
+        if (static::$is_admin) {
+            $me->roles[] = ['name' => 'admin'];
+        }
         return $me;
     }
 
     public function can($query, $pharmacy_id=null)
     {
-        if(! is_null($pharmacy_id)) {
-            return in_array($pharmacy_id, $this->pharmacy_ids);
-        }
-
         foreach ($this->roles as $role) {
+            if ($role['name'] === 'admin') {
+                return true;
+            }
+
             foreach ($role['permissions'] as $permission) {
                 if ($permission['name'] === $query) {
-                    return true;
+                    if (is_null($pharmacy_id)) {
+                        return true;
+                    } elseif (in_array($pharmacy_id, $this->pharmacy_ids)) {
+                        return true;
+                    }
                 }
             }
         }

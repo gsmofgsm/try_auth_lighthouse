@@ -8,9 +8,9 @@ use Illuminate\Auth\Access\HandlesAuthorization;
 
 class PharmacyPolicy extends BasePolicy
 {
-    public function pharmacy(?User $user)
+    public function pharmacy(?User $user, $pharmacy)
     {
-        return $this->user->can('pharmacy');
+        return $this->user->can('pharmacy', $pharmacy->id);
     }
 
     public function createAddress(?User $user, Pharmacy $pharmacy)
